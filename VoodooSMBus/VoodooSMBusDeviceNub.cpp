@@ -12,7 +12,7 @@
 #define super IOService
 OSDefineMetaClassAndStructors(VoodooSMBusDeviceNub, IOService);
 
-bool VoodooSMBusDeviceNub::init() {
+bool VoodooSMBusDeviceNub::init(OSDictionary *props) {
     bool result = super::init();
     
     workloop = IOWorkLoop::workLoop();
@@ -26,6 +26,8 @@ bool VoodooSMBusDeviceNub::init() {
 
     if (!interruptSource) return false;
     workloop->addEventSource(interruptSource);
+    
+    deviceProps = props;
     
     return result;
 }
@@ -68,16 +70,7 @@ IOReturn VoodooSMBusDeviceNub::wakeupController() {
     }
 }
 
-bool VoodooSMBusDeviceNub::start(IOService* provider) {
-    if (!super::start(provider)) {
-        return false;
-    }
-    
-    registerService();
-    return true;
-}
-
-void VoodooSMBusDeviceNub::stop(IOService* provider) {
+void VoodooSMBusDeviceNub::free() {
     if (interruptSource) {
         workloop->removeEventSource(interruptSource);
         interruptSource->release();
@@ -85,7 +78,6 @@ void VoodooSMBusDeviceNub::stop(IOService* provider) {
     }
     
     OSSafeReleaseNULL(workloop);
-    super::stop(provider);
 }
 
 void VoodooSMBusDeviceNub::setSlaveDeviceFlags(unsigned short flags) {
@@ -110,4 +102,8 @@ IOReturn VoodooSMBusDeviceNub::writeByte(u8 value) {
 
 IOReturn VoodooSMBusDeviceNub::writeBlockData(u8 command, u8 length, const u8 *values) {
     return controller->writeBlockData(&slave_device, command, length, values);
+}
+
+OSDictionary *VoodooSMBusDeviceNub::getDeviceProps() {
+    return deviceProps;
 }
