@@ -87,16 +87,8 @@ bool VoodooSMBusControllerDriver::start(IOService *provider) {
         goto exit;
     }
     
-//    interrupt_source =
-//    IOInterruptEventSource::interruptEventSource(this, OSMemberFunctionCast(IOInterruptEventAction, this, &VoodooSMBusControllerDriver::handleInterrupt),provider);
-    
     provider->registerInterrupt(0, nullptr, handleInterrupt, this);
     provider->enableInterrupt(0);
-    
-//    if (!interrupt_source || work_loop->addEventSource(interrupt_source) != kIOReturnSuccess) {
-//        IOLogError("%s Could not add interrupt source to work loop", getName());
-//        goto exit;
-//    }
     
     command_gate = IOCommandGate::commandGate(this);
     if (!command_gate || (work_loop->addEventSource(command_gate) != kIOReturnSuccess)) {
@@ -164,16 +156,11 @@ IOReturn VoodooSMBusControllerDriver::setPowerState(unsigned long whichState, IO
         return kIOPMAckImplied;
     
     if (whichState == kIOPMPowerOff) {
-        
-//        disableHostNotify();
-//        command_gate->runAction(OSMemberFunctionCast(IOCommandGate::Action, this, &VoodooSMBusControllerDriver::disableCommandGate));
         pci_device->ioWrite8(SMBHSTCFG, adapter->original_hstcfg);
         awake = false;
-
     } else {
         if (!awake) {
             pci_device->enablePCIPowerManagement(kPCIPMCSPowerStateD0);
-//            command_gate->enable();
             enableHostNotify();
             awake = true;
         }
