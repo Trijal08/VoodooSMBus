@@ -104,7 +104,6 @@ IOReturn VoodooSMBusDeviceNub::writeBlockData(u8 command, u8 length, const u8 *v
 }
 
 bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char *ps2DictName, IOService **ps2Controller) {
-    
     if (ps2TrackpadName == nullptr || ps2Controller == nullptr) {
         return false;
     }
@@ -121,7 +120,7 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
     if (ps2Trackpad == nullptr || *ps2Controller == nullptr) {
         OSSafeReleaseNULL(ps2Trackpad);
         OSSafeReleaseNULL(*ps2Controller);
-        return nullptr;
+        return false;
     }
     
     // Grab any useful information from Trackpad driver
@@ -134,7 +133,12 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
     
     // Do a reset over PS2, replace the PS2 Synaptics Driver with a stub driver
     bool stubCreated = controller->createPS2Stub(ps2Trackpad);
+    
     OSSafeReleaseNULL(ps2Trackpad);
+    if (!stubCreated) {
+        OSSafeReleaseNULL(*ps2Controller);
+    }
+    
     return stubCreated;
 }
 
