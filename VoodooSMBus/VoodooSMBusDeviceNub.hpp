@@ -14,6 +14,7 @@
 
 class VoodooSMBusControllerDriver;
 class VoodooSMBusSlaveDevice;
+class IOInterruptEventSource;
 typedef UInt8 u8;
 
 #ifndef EXPORT
