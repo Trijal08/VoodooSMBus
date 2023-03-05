@@ -44,7 +44,7 @@ public:
     IOReturn wakeupController();
     
     bool createPS2Stub(const char *ps2TrackpadName, const char *ps2DictName, IOService **ps2Controller);
-    OSDictionary *grabPS2Info();
+    OSDictionary *getPS2Info();
     bool acidantheraTrackpadExists();
     
 private:

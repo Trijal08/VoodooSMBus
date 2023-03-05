@@ -108,7 +108,7 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
         return false;
     }
     
-    if (grabPS2Info() != nullptr) {
+    if (getPS2Info() != nullptr) {
         // Previous driver killed the PS2 trackpad already
         *ps2Controller = controller->grabService("ApplePS2Controller");
         return *ps2Controller != nullptr;
@@ -142,7 +142,7 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
     return stubCreated;
 }
 
-OSDictionary *VoodooSMBusDeviceNub::grabPS2Info() {
+OSDictionary *VoodooSMBusDeviceNub::getPS2Info() {
     return OSDynamicCast(OSDictionary, getProperty("PS/2 Data"));
 }
 
