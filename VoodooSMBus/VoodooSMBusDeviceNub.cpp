@@ -102,3 +102,15 @@ IOReturn VoodooSMBusDeviceNub::writeByte(u8 value) {
 IOReturn VoodooSMBusDeviceNub::writeBlockData(u8 command, u8 length, const u8 *values) {
     return controller->writeBlockData(&slave_device, command, length, values);
 }
+
+bool VoodooSMBusDeviceNub::createPS2Stub(IOService *ps2Trackpad) {
+    return controller->createPS2Stub(ps2Trackpad);
+}
+
+IOService *VoodooSMBusDeviceNub::grabService(const char *serviceName) {
+    return controller->grabService(serviceName);
+}
+
+bool VoodooSMBusDeviceNub::acidantheraTrackpadExists() {
+    return controller->acidantheraTrackpadExists();
+}

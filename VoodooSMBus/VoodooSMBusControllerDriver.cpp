@@ -12,6 +12,7 @@
  */
 
 #include "VoodooSMBusControllerDriver.hpp"
+#include <IOKit/IOCatalogue.h>
 
 OSDefineMetaClassAndStructors(VoodooSMBusControllerDriver, IOService)
 
@@ -315,7 +316,6 @@ void VoodooSMBusControllerDriver::handleInterrupt(OSObject* owner, IOInterruptEv
     }
 }
 
-
 void VoodooSMBusControllerDriver::enableHostNotify() {
     
     if(!(adapter->original_slvcmd & SMBSLVCMD_HST_NTFY_INTREN)) {
@@ -404,4 +404,82 @@ IOReturn VoodooSMBusControllerDriver::transferGated(VoodooSMBusControllerMessage
     }
     
     return res;
+}
+
+//
+// MARK: PS2 Interactions
+//
+
+bool VoodooSMBusControllerDriver::acidantheraTrackpadExists() {
+    OSOrderedSet *personalitiesSet = nullptr;
+    OSDictionary *personality = nullptr;
+    bool ret = false;
+    SInt32 generation;
+    
+    OSDictionary *trackpadDict = OSDictionary::withCapacity(1);
+    OSString *bundleStr = OSString::withCString("as.acidanthera.voodoo.driver.PS2Trackpad");
+    if (trackpadDict == nullptr || bundleStr == nullptr) {
+        IOLogError("Unable to create driver matching dictionary");
+        goto error;
+    }
+    
+    personalitiesSet = gIOCatalogue->findDrivers(trackpadDict, &generation);
+    if (personalitiesSet == nullptr) {
+        IOLogError("Error retrieving PS2 personalities");
+        goto error;
+    }
+    
+    personality = OSDynamicCast(OSDictionary, personalitiesSet->getFirstObject());
+    if (personality == nullptr) {
+        IOLogError("No ApplePS2SynapticsTouchPad personality found");
+        goto error;
+    }
+    
+    // Personality found
+    ret = true;
+
+error:
+    OSSafeReleaseNULL(bundleStr);
+    OSSafeReleaseNULL(trackpadDict);
+    OSSafeReleaseNULL(personalitiesSet);
+    return ret;
+}
+
+IOService *VoodooSMBusControllerDriver::grabService(const char *serviceName) {
+    auto ps2contDict = IOService::serviceMatching(serviceName);
+    if (ps2contDict == nullptr) {
+        IOLogError("Unable to create service matching dictionaries");
+        return nullptr;
+    }
+    
+    IOService *ps2Controller = waitForMatchingService(ps2contDict);
+    OSSafeReleaseNULL(ps2contDict);
+    return ps2Controller;
+}
+
+bool VoodooSMBusControllerDriver::createPS2Stub(IOService *ps2Trackpad) {
+    if (ps2Trackpad == nullptr) return false;
+    
+    IOService *ps2Nub = ps2Trackpad->getProvider();
+    if (ps2Nub == nullptr) {
+        return false;
+    }
+    
+    // Grab port number for trackpad so we can tell the controller the right driver to kill
+    OSNumber *ps2PortNum = OSDynamicCast(OSNumber, ps2Nub->getProperty("Port Num"));
+    if (ps2PortNum == nullptr) {
+        return false;
+    }
+    
+    // Kill PS/2 driver and replace it with a stub to do our own bidding (heheheh)
+    const OSSymbol *funcName = OSSymbol::withCString("PS2CreateSMBusStub");
+    IOReturn ret = ps2Trackpad->callPlatformFunction(funcName,
+                                                     true,
+                                                     reinterpret_cast<void *>(ps2PortNum->unsigned8BitValue()),
+                                                     nullptr,
+                                                     nullptr,
+                                                     nullptr);
+    
+    OSSafeReleaseNULL(funcName);
+    return ret == kIOReturnSuccess;
 }

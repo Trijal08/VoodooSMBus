@@ -38,6 +38,10 @@ public:
     IOReturn writeBlockData(u8 command, u8 length, const u8 *values);
     IOReturn wakeupController();
     
+    bool createPS2Stub(IOService *ps2Trackpad);
+    IOService *grabService(const char *serviceName);
+    bool acidantheraTrackpadExists();
+    
 private:
     IOInterruptEventSource *interruptSource;
     IOWorkLoop *workloop;

@@ -132,6 +132,21 @@ public:
      */
     IOReturn transfer(VoodooSMBusSlaveDevice *client, char read_write, u8 command, int protocol, union i2c_smbus_data *data);
     
+    /**
+     * Tell VoodooPS2 to terminate the current trackpad driver and create a stub instead
+     */
+    bool createPS2Stub(IOService *ps2Trackpad);
+    
+    /**
+     * Grab service by class name
+     */
+    IOService *grabService(const char *serviceName);
+    
+    /**
+     * Check whether Acidanthera's VoodooPS2 is in the kernal cache or not.
+     * This is useful to know if `createPS2Stub` will work.
+     */
+    bool acidantheraTrackpadExists();
     
 private:
     IOCommandGate* command_gate;
