@@ -103,12 +103,37 @@ IOReturn VoodooSMBusDeviceNub::writeBlockData(u8 command, u8 length, const u8 *v
     return controller->writeBlockData(&slave_device, command, length, values);
 }
 
-bool VoodooSMBusDeviceNub::createPS2Stub(IOService *ps2Trackpad) {
-    return controller->createPS2Stub(ps2Trackpad);
+bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char *ps2DictName, IOService **ps2Controller) {
+    // Previous driver killed the PS2 trackpad already
+    if (grabPS2Info() != nullptr) {
+        *ps2Controller = controller->grabService("ApplePS2Controller");
+        return *ps2Controller != nullptr;
+    }
+    
+    IOService *ps2Trackpad = controller->grabService(ps2TrackpadName);
+    *ps2Controller = controller->grabService("ApplePS2Controller");
+    
+    if (ps2Trackpad == nullptr || ps2Controller == nullptr) {
+        OSSafeReleaseNULL(ps2Trackpad);
+        OSSafeReleaseNULL(*ps2Controller);
+        return nullptr;
+    }
+    
+    // Grab any useful information from Trackpad driver
+    OSObject *gpio = ps2Trackpad->getProperty(ps2DictName);
+    if (gpio != nullptr) {
+        IOLogDebug("Found GPIO data!");
+        setProperty("PS/2 Data", gpio);
+    }
+    
+    // Do a reset over PS2, replace the PS2 Synaptics Driver with a stub driver
+    bool stubCreated = controller->createPS2Stub(ps2Trackpad);
+    OSSafeReleaseNULL(ps2Trackpad);
+    return stubCreated;
 }
 
-IOService *VoodooSMBusDeviceNub::grabService(const char *serviceName) {
-    return controller->grabService(serviceName);
+OSDictionary *VoodooSMBusDeviceNub::grabPS2Info() {
+    return OSDynamicCast(OSDictionary, getProperty("PS/2 Data"));
 }
 
 bool VoodooSMBusDeviceNub::acidantheraTrackpadExists() {
