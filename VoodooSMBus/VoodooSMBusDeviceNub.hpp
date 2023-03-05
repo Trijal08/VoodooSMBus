@@ -11,11 +11,15 @@
 #define VoodooSMBusDeviceNub_hpp
 
 #include <IOKit/IOService.h>
-#include "i2c_smbus.h"
 
 class VoodooSMBusControllerDriver;
 class IOInterruptEventSource;
 typedef UInt8 u8;
+
+struct VoodooSMBusSlaveDevice {
+    UInt8 addr;
+    UInt8 flags;
+};
 
 #ifndef EXPORT
 #define EXPORT __attribute__((visibility("default")))

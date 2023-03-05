@@ -67,9 +67,4 @@ union i2c_smbus_data {
 
 #define I2C_M_TEN                   0x0010    /* this is a ten bit chip address */
 
-struct VoodooSMBusSlaveDevice {
-    UInt8 addr;
-    UInt8 flags;
-};
-
 #endif /* i2c_smbus_h */
