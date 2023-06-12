@@ -9,6 +9,9 @@
 #include "VoodooSMBusControllerDriver.hpp"
 #include "VoodooSMBusDeviceNub.hpp"
 
+#define kPS2Controller "ApplePS2Controller"
+#define kPS2Data "PS/2 Data"
+
 #define super IOService
 OSDefineMetaClassAndStructors(VoodooSMBusDeviceNub, IOService);
 
@@ -103,23 +106,22 @@ IOReturn VoodooSMBusDeviceNub::writeBlockData(u8 command, u8 length, const u8 *v
     return controller->writeBlockData(&slave_device, command, length, values);
 }
 
-bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char *ps2DictName, IOService **ps2Controller) {
-    if (ps2TrackpadName == nullptr || ps2Controller == nullptr) {
+bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char *ps2DictName, IOService **retController) {
+    if (ps2TrackpadName == nullptr || retController == nullptr) {
         return false;
     }
     
     if (getPS2Info() != nullptr) {
         // Previous driver killed the PS2 trackpad already
-        *ps2Controller = controller->grabService("ApplePS2Controller");
-        return *ps2Controller != nullptr;
+        *retController = controller->grabService(kPS2Controller);
+        return *retController != nullptr;
     }
     
     IOService *ps2Trackpad = controller->grabService(ps2TrackpadName);
-    *ps2Controller = controller->grabService("ApplePS2Controller");
-    
-    if (ps2Trackpad == nullptr || *ps2Controller == nullptr) {
+    IOService *ps2Controller = controller->grabService(kPS2Controller);
+    if (ps2Trackpad == nullptr || ps2Controller == nullptr) {
         OSSafeReleaseNULL(ps2Trackpad);
-        OSSafeReleaseNULL(*ps2Controller);
+        OSSafeReleaseNULL(ps2Controller);
         return false;
     }
     
@@ -127,7 +129,7 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
     if (ps2DictName != nullptr) {
         OSObject *gpio = ps2Trackpad->getProperty(ps2DictName);
         if (gpio != nullptr) {
-            setProperty("PS/2 Data", gpio);
+            setProperty(kPS2Data, gpio);
         }
     }
     
@@ -136,14 +138,15 @@ bool VoodooSMBusDeviceNub::createPS2Stub(const char *ps2TrackpadName, const char
     
     OSSafeReleaseNULL(ps2Trackpad);
     if (!stubCreated) {
-        OSSafeReleaseNULL(*ps2Controller);
+        OSSafeReleaseNULL(ps2Controller);
     }
     
+    *retController = ps2Controller;
     return stubCreated;
 }
 
 OSDictionary *VoodooSMBusDeviceNub::getPS2Info() {
-    return OSDynamicCast(OSDictionary, getProperty("PS/2 Data"));
+    return OSDynamicCast(OSDictionary, getProperty(kPS2Data));
 }
 
 bool VoodooSMBusDeviceNub::acidantheraTrackpadExists() {
