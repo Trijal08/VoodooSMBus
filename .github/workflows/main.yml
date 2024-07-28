@@ -24,7 +24,6 @@ jobs:
         run: |
           mkdir build
           xcodebuild -scheme VoodooSMBus build CONFIGURATION_BUILD_DIR=build/${VOODOOSMBUS_SHA}
-          mv build/${VOODOOSMBUS_SHA}/VoodooSMBus.kext build/${VOODOOSMBUS_SHA}/${VOODOOSMBUS_SHA}.kext
       - uses: actions/upload-artifact@v4.3.4
         with:
           name: VoodooSMBus
