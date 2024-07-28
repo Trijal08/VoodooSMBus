@@ -23,6 +23,7 @@ jobs:
         with:
           repository: acidanthera/MacKernelSDK
           path: MacKernelSDK
+          ref: '10282cf4cafe12f1ff4143007ba2e0eacc061fbd'
       - uses: actions/setup-python@v5.1.1
         with:
           python-version: '3.12.4'
