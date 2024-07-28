@@ -2,6 +2,9 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  PROJECT_TYPE: KEXT
+
 jobs:
   build:
     name: Build
