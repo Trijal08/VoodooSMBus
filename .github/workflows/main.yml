@@ -13,8 +13,8 @@ jobs:
       JOB_TYPE: BUILD
     steps:
       - uses: actions/checkout@v4.1.7
-        with:
-          submodules: recursive
+      - name: Checkout submodules
+        run: git submodule update --init
       - name: get shortsha
         id: vars
         run: |
