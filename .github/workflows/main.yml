@@ -2,20 +2,15 @@ name: CI
 
 on: [push, pull_request]
 
-env:
-  PROJECT_TYPE: KEXT
-
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
-    env:
-      JOB_TYPE: BUILD
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Checkout submodules
         run: git submodule update --init
-      - name: get shortsha
+      - name: Get shortsha
         id: vars
         run: |
           echo ::set-output name=sha_short::$(git rev-parse --short=8 ${{ github.sha }})
@@ -23,16 +18,7 @@ jobs:
         with:
           repository: acidanthera/MacKernelSDK
           path: MacKernelSDK
-          ref: '10282cf4cafe12f1ff4143007ba2e0eacc061fbd'
-      - uses: actions/setup-python@v5.1.1
-        with:
-          python-version: '3.12.4'
-      - name: Install Python dependencies
-        run: pip install cpplint git+https://github.com/newperson1746/cldoc-fix.git
-      - name: CI Bootstrap
-        run: |
-          src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/ci-bootstrap.sh) && eval "$src" || exit 1
-      - name: build
+      - name: Build
         env:
             VOODOOSMBUS_SHA: VoodooSMBus-${{ steps.vars.outputs.sha_short }}
         run: |
