@@ -23,6 +23,14 @@ jobs:
         with:
           repository: acidanthera/MacKernelSDK
           path: MacKernelSDK
+      - uses: actions/setup-python@v5.1.1
+        with:
+          python-version: '3.12.4'
+      - name: Install Python dependencies
+        run: pip install cpplint git+https://github.com/newperson1746/cldoc-fix.git
+      - name: CI Bootstrap
+        run: |
+          src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/ci-bootstrap.sh) && eval "$src" || exit 1
       - name: build
         env:
             VOODOOSMBUS_SHA: VoodooSMBus-${{ steps.vars.outputs.sha_short }}
