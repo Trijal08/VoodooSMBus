@@ -5,7 +5,9 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on: macos-12
+    runs-on: macos-latest
+    env:
+      JOB_TYPE: BUILD
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Checkout submodules
@@ -18,6 +20,16 @@ jobs:
         with:
           repository: acidanthera/MacKernelSDK
           path: MacKernelSDK
+      - uses: actions/setup-python@v5.1.1
+        with:
+          python-version: '3.12.4'
+      - name: Install Python dependencies
+        run: pip install cpplint git+https://github.com/newperson1746/cldoc-fix.git
+      - name: CI Bootstrap
+        env:
+          PROJECT_TYPE: KEXT
+        run: |
+          src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/ci-bootstrap.sh) && eval "$src" || exit 1
       - name: Build
         env:
             VOODOOSMBUS_SHA: VoodooSMBus-${{ steps.vars.outputs.sha_short }}
